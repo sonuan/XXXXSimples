@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">XXXXSimples</string>
+
+    <string-array name="main_simples">
+        <item>6.0 Permission适配</item>
+    </string-array>
+</resources>
