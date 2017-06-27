@@ -37,6 +37,7 @@ class MainActivity : BaseActivity(), OnItemClickListener {
         println(title)
         when (position) {
             0 -> toActivity(this, MPermissionActivity::class.java, title)
+            1 -> toActivity(this, EasyPermissionsActivity::class.java, title)
         }
     }
 
