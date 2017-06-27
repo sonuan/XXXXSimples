@@ -33,9 +33,10 @@ class MainActivity : BaseActivity(), OnItemClickListener {
     }
 
     override fun onItemClick(obj: Any, position: Int) {
-        println(obj.toString())
+        val title = obj.toString()
+        println(title)
         when (position) {
-            0 -> null
+            0 -> toActivity(this, MPermissionActivity::class.java, title)
         }
     }
 
