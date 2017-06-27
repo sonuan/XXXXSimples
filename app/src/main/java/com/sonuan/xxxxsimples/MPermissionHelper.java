@@ -66,11 +66,12 @@ public class MPermissionHelper implements EasyPermissions.PermissionCallbacks {
             if (listener != null) {
                 listener.onGranted(Arrays.asList(perms));
             }
+            Log.i(TAG, "requestPermissions: all granted.");
         } else {
             // 请求权限，一个或多个
             EasyPermissions.requestPermissions(mActivity, mActivity.getString(R.string.rationale_camera), mRequestCode,
                     perms);
-            Log.i(TAG, "requestPermission: requestCode:" + mRequestCode);
+            Log.i(TAG, "requestPermissions: requestCode:" + mRequestCode);
             mRequestCode++;
 
         }
