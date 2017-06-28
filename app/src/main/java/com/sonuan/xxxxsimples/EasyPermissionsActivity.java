@@ -12,7 +12,8 @@ import java.util.List;
 import pub.devrel.easypermissions.AfterPermissionGranted;
 import pub.devrel.easypermissions.EasyPermissions;
 
-public class EasyPermissionsActivity extends BaseActivity implements View.OnClickListener {
+public class EasyPermissionsActivity extends BaseActivity implements View.OnClickListener,
+        MPermissionHelper.OnPermissionsResultListener {
 
 
     private static final int RC_CAMERA_PERM = 1001;
@@ -92,6 +93,7 @@ public class EasyPermissionsActivity extends BaseActivity implements View.OnClic
 
     ActivityCompat.OnRequestPermissionsResultCallback mPermissionsResultCallback;
 
+    @Override
     public void setPermissionsResultCallback(
             ActivityCompat.OnRequestPermissionsResultCallback permissionsResultCallback) {
         mPermissionsResultCallback = permissionsResultCallback;

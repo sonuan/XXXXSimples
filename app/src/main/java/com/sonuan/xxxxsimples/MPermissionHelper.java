@@ -1,7 +1,10 @@
 package com.sonuan.xxxxsimples;
 
 import android.app.Activity;
+import android.content.Context;
 import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.Fragment;
 import android.util.Log;
 
 import java.util.Arrays;
@@ -24,16 +27,18 @@ public class MPermissionHelper implements EasyPermissions.PermissionCallbacks {
 
     private int mRequestCode;
     private boolean isDestroyed = false;
-    private EasyPermissionsActivity mActivity;
+    private Activity mActivity;
+    private Fragment mFragment;
     private boolean mIsShowRationaleSettingsDialog = true;
     private String mRationale = RATIONALE;
     private String mRationaleSettings = RATIONALE_SETTINGS;
     private String[] mPermissions;
     private OnPermissionListener mListener;
-    private Builder mBuilder;
+    private Context mContext;
+    private OnPermissionsResultListener mActivityResult;
+    private OnPermissionsResultListener mFragmentResult;
 
     private MPermissionHelper(Builder builder) {
-        mBuilder = builder;
         mIsShowRationaleSettingsDialog = builder.mIsShowRationaleSettingsDialog;
         mRationale = builder.mRationale;
         mRationaleSettings = builder.mRationaleSettings;
@@ -44,12 +49,27 @@ public class MPermissionHelper implements EasyPermissions.PermissionCallbacks {
         if (sRequestCode >= Integer.MAX_VALUE) {
             sRequestCode = 1000;
         }
-        if (builder.mActivity instanceof EasyPermissionsActivity) {
-            mActivity = (EasyPermissionsActivity) builder.mActivity;
-            mActivity.setPermissionsResultCallback(this);
+        if (builder.mActivity != null) {
+            mActivity = builder.mActivity;
+            mContext = builder.mActivity;
+            if (builder.mActivity instanceof OnPermissionsResultListener) {
+                mActivityResult = (OnPermissionsResultListener) builder.mActivity;
+                mActivityResult.setPermissionsResultCallback(this);
+            }
+        } else if (builder.mFragment != null) {
+            mFragment = builder.mFragment;
+            mContext = builder.mFragment.getContext();
+            if (builder.mFragment instanceof OnPermissionsResultListener) {
+                mFragmentResult = (OnPermissionsResultListener) builder.mFragment;
+                mFragmentResult.setPermissionsResultCallback(this);
+            }
         }
+
     }
 
+    public interface OnPermissionsResultListener {
+        void setPermissionsResultCallback(ActivityCompat.OnRequestPermissionsResultCallback permissionsResultCallback);
+    }
 
     public interface OnPermissionListener {
         void onGranted(List<String> perms);
@@ -57,14 +77,19 @@ public class MPermissionHelper implements EasyPermissions.PermissionCallbacks {
         void onDenied(List<String> perms);
     }
 
-    private MPermissionHelper(EasyPermissionsActivity activity) {
-        mBuilder = null;
+    private MPermissionHelper(@NonNull Activity activity) {
         mActivity = activity;
-        mActivity.setPermissionsResultCallback(this);
         mRequestCode = sRequestCode;
         sRequestCode += 1000;
         if (sRequestCode >= Integer.MAX_VALUE) {
             sRequestCode = 1000;
+        }
+        if (mActivity != null) {
+            mContext = mActivity;
+            if (mActivity instanceof OnPermissionsResultListener) {
+                mActivityResult = (OnPermissionsResultListener) mActivity;
+                mActivityResult.setPermissionsResultCallback(this);
+            }
         }
     }
 
@@ -77,14 +102,18 @@ public class MPermissionHelper implements EasyPermissions.PermissionCallbacks {
     }
 
     private void requestPermissions() {
-        if (EasyPermissions.hasPermissions(mActivity, mPermissions)) {
+        if (EasyPermissions.hasPermissions(mContext, mPermissions)) {
             if (mListener != null) {
                 mListener.onGranted(Arrays.asList(mPermissions));
             }
             Log.i(TAG, "requestPermissions: all granted.");
         } else {
             // 请求权限，一个或多个
-            EasyPermissions.requestPermissions(mActivity, mRationale, mRequestCode, mPermissions);
+            if (mActivity != null) {
+                EasyPermissions.requestPermissions(mActivity, mRationale, mRequestCode, mPermissions);
+            } else if (mFragment != null) {
+                EasyPermissions.requestPermissions(mFragment, mRationale, mRequestCode, mPermissions);
+            }
             Log.i(TAG, "requestPermissions: requestCode:" + mRequestCode);
             mRequestCode++;
         }
@@ -104,13 +133,12 @@ public class MPermissionHelper implements EasyPermissions.PermissionCallbacks {
     public void onPermissionsDenied(int requestCode, List<String> perms) {
         Log.i(TAG, "onPermissionsDenied: requestCode:" + requestCode);
         if (!isDestroyed) {
-            if (EasyPermissions.somePermissionPermanentlyDenied(mActivity, perms) && mIsShowRationaleSettingsDialog) {
-                new AppSettingsDialog.Builder(mActivity).setTitle("权限说明")
-                        .setRationale(mRationaleSettings)
-                        .setPositiveButton("设置")
-                        .setNegativeButton("取消")
-                        .build()
-                        .show();
+            if (isSomePermissionPermanentlyDenied(perms) && mIsShowRationaleSettingsDialog) {
+                if (mActivity != null) {
+                    showSettingsDialogByActivity();
+                } else if (mFragment != null) {
+                    showSettingsDialogByFragment();
+                }
             }
             if (mListener != null) {
                 mListener.onDenied(perms);
@@ -119,13 +147,35 @@ public class MPermissionHelper implements EasyPermissions.PermissionCallbacks {
 
     }
 
+    private boolean isSomePermissionPermanentlyDenied(List<String> perms) {
+        boolean somePermissionPermanentlyDenied = false;
+        if (mActivity != null) {
+            somePermissionPermanentlyDenied = EasyPermissions.somePermissionPermanentlyDenied(mActivity, perms);
+        } else if (mFragment != null) {
+            somePermissionPermanentlyDenied = EasyPermissions.somePermissionPermanentlyDenied(mFragment, perms);
+        }
+        return somePermissionPermanentlyDenied;
+    }
+
+    private void showSettingsDialogByActivity() {
+        new AppSettingsDialog.Builder(mActivity).setTitle("权限说明").setRationale(mRationaleSettings).setPositiveButton(
+                "设置").setNegativeButton("取消").build().show();
+    }
+
+    private void showSettingsDialogByFragment() {
+        new AppSettingsDialog.Builder(mFragment).setTitle("权限说明").setRationale(mRationaleSettings).setPositiveButton(
+                "设置").setNegativeButton("取消").build().show();
+    }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
             @NonNull int[] grantResults) {
         EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this);
         reset();
-        if (mActivity != null) {
-            mActivity.setPermissionsResultCallback(null);
+        if (mActivityResult != null) {
+            mActivityResult.setPermissionsResultCallback(null);
+        } else if (mFragmentResult != null) {
+            mFragmentResult.setPermissionsResultCallback(null);
         }
     }
 
@@ -139,8 +189,11 @@ public class MPermissionHelper implements EasyPermissions.PermissionCallbacks {
 
     private void destroy() {
         isDestroyed = true;
-        if (mActivity != null) {
-            mActivity.setPermissionsResultCallback(null);
+        if (mActivityResult != null) {
+            mActivityResult.setPermissionsResultCallback(null);
+        }
+        if (mFragmentResult != null) {
+            mFragmentResult.setPermissionsResultCallback(null);
         }
     }
 
@@ -174,11 +227,16 @@ public class MPermissionHelper implements EasyPermissions.PermissionCallbacks {
         private String mRationaleSettings = RATIONALE_SETTINGS;
         private String[] mPermissions;
         private OnPermissionListener mListener;
-        private Activity mActivity;
         private boolean mIsShowRationaleSettingsDialog = true;
+        private Activity mActivity;
+        private Fragment mFragment;
 
-        public Builder(Activity activity) {
+        public Builder(@NonNull Activity activity) {
             mActivity = activity;
+        }
+
+        public Builder(Fragment fragment) {
+            mFragment = fragment;
         }
 
         public Builder rationale(String rationale) {
