@@ -9,6 +9,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
+import com.sonuan.xxxxsimples.activity.EasyPermissionsActivity
+import com.sonuan.xxxxsimples.activity.NativePermissionActivity
+import com.sonuan.xxxxsimples.base.BaseActivity
+import com.sonuan.xxxxsimples.ex.toActivity
 
 class MainActivity : BaseActivity(), OnItemClickListener {
 
@@ -36,7 +40,7 @@ class MainActivity : BaseActivity(), OnItemClickListener {
         val title = obj.toString()
         println(title)
         when (position) {
-            0 -> toActivity(this, MPermissionActivity::class.java, title)
+            0 -> toActivity(this, NativePermissionActivity::class.java, title)
             1 -> toActivity(this, EasyPermissionsActivity::class.java, title)
         }
     }

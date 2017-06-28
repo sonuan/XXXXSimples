@@ -1,8 +1,9 @@
-package com.sonuan.xxxxsimples
+package com.sonuan.xxxxsimples.ex
 
 import android.content.Context
 import android.content.Intent
 import android.widget.Toast
+import com.sonuan.xxxxsimples.base.BaseActivity
 
 /**
  * @author wusongyuan

@@ -1,8 +1,10 @@
-package com.sonuan.xxxxsimples;
+package com.sonuan.xxxxsimples.base;
 
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.Fragment;
+import android.support.v7.app.AppCompatActivity;
+
+import com.sonuan.xxxxsimples.helper.MPermissionHelper;
 
 /**
  * @author wusongyuan
@@ -10,7 +12,8 @@ import android.support.v4.app.Fragment;
  * @desc
  */
 
-public class BaseFragment extends Fragment implements MPermissionHelper.OnPermissionsResultListener {
+public class BasePermissionsActivity extends AppCompatActivity
+        implements MPermissionHelper.OnPermissionsResultListener {
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
@@ -20,7 +23,9 @@ public class BaseFragment extends Fragment implements MPermissionHelper.OnPermis
             mPermissionsResultCallback.onRequestPermissionsResult(requestCode, permissions, grantResults);
         }
     }
+
     ActivityCompat.OnRequestPermissionsResultCallback mPermissionsResultCallback;
+
     @Override
     public void setPermissionsResultCallback(
             ActivityCompat.OnRequestPermissionsResultCallback permissionsResultCallback) {

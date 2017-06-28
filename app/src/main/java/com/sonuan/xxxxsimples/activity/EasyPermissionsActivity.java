@@ -1,19 +1,20 @@
-package com.sonuan.xxxxsimples;
+package com.sonuan.xxxxsimples.activity;
 
 import android.Manifest;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
 import android.view.View;
 import android.widget.Toast;
+
+import com.sonuan.xxxxsimples.helper.MPermissionHelper;
+import com.sonuan.xxxxsimples.R;
+import com.sonuan.xxxxsimples.base.BaseActivity;
 
 import java.util.List;
 
 import pub.devrel.easypermissions.AfterPermissionGranted;
 import pub.devrel.easypermissions.EasyPermissions;
 
-public class EasyPermissionsActivity extends BaseActivity implements View.OnClickListener,
-        MPermissionHelper.OnPermissionsResultListener {
+public class EasyPermissionsActivity extends BaseActivity implements View.OnClickListener {
 
 
     private static final int RC_CAMERA_PERM = 1001;
@@ -21,11 +22,11 @@ public class EasyPermissionsActivity extends BaseActivity implements View.OnClic
 
     @Override
     protected void initViews() {
-        setContentView(R.layout.activity_easy_permissions);
-        findViewById(R.id.permission_camera).setOnClickListener(this);
-        findViewById(R.id.permission_camera2).setOnClickListener(this);
-        findViewById(R.id.multi_permission).setOnClickListener(this);
-        findViewById(R.id.multi_permission2).setOnClickListener(this);
+        setContentView(R.layout.easypermissions_activity);
+        findViewById(R.id.easypermissions_camera_native).setOnClickListener(this);
+        findViewById(R.id.easypermissions_camera_my).setOnClickListener(this);
+        findViewById(R.id.easypermissions_camera_and_location).setOnClickListener(this);
+        findViewById(R.id.easypermissions_camera_and_location_words).setOnClickListener(this);
     }
 
     @Override
@@ -61,57 +62,23 @@ public class EasyPermissionsActivity extends BaseActivity implements View.OnClic
     }
 
     private void multiPer() {
-        new MPermissionHelper.Builder(this).permissions(Manifest.permission.CAMERA, Manifest.permission.ACCESS_FINE_LOCATION).build().request();
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
-            @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        // EasyPermissions handles the request result.
-        //EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, mPermissionHelper);
-        if (mPermissionsResultCallback != null) {
-            mPermissionsResultCallback.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        }
-    }
-    //
-    //
-    //@Override
-    //public void onPermissionsGranted(int requestCode, List<String> perms) {
-    //
-    //}
-    //
-    //@Override
-    //public void onPermissionsDenied(int requestCode, List<String> perms) {
-    //    // (Optional) Check whether the user denied any permissions and checked "NEVER ASK AGAIN."
-    //    // This will display a dialog directing them to enable the permission in app settings.
-    //    if (EasyPermissions.somePermissionPermanentlyDenied(this, perms)) {
-    //        new AppSettingsDialog.Builder(this).build().show();
-    //    }
-    //}
-
-
-    ActivityCompat.OnRequestPermissionsResultCallback mPermissionsResultCallback;
-
-    @Override
-    public void setPermissionsResultCallback(
-            ActivityCompat.OnRequestPermissionsResultCallback permissionsResultCallback) {
-        mPermissionsResultCallback = permissionsResultCallback;
+        new MPermissionHelper.Builder(this).permissions(Manifest.permission.CAMERA,
+                Manifest.permission.ACCESS_FINE_LOCATION).build().request();
     }
 
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
-            case R.id.permission_camera:
+            case R.id.easypermissions_camera_native:
                 camera();
                 break;
-            case R.id.permission_camera2:
+            case R.id.easypermissions_camera_my:
                 camera2();
                 break;
-            case R.id.multi_permission:
+            case R.id.easypermissions_camera_and_location:
                 multiPer();
                 break;
-            case R.id.multi_permission2:
+            case R.id.easypermissions_camera_and_location_words:
                 new MPermissionHelper.Builder(this).permissions(Manifest.permission.CAMERA,
                         Manifest.permission.ACCESS_FINE_LOCATION).rationale("拒绝后，再次申请时提示语").rationaleSettings(
                         "权限被禁，提示去设置").showRationaleSettingsDialog(true).listener(

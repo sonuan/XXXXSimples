@@ -1,4 +1,4 @@
-package com.sonuan.xxxxsimples
+package com.sonuan.xxxxsimples.activity
 
 import android.Manifest
 import android.content.pm.PackageManager
@@ -8,8 +8,12 @@ import android.support.v4.content.ContextCompat
 import android.support.v4.content.PermissionChecker
 import android.util.Log
 import android.view.View
+import com.sonuan.xxxxsimples.R
+import com.sonuan.xxxxsimples.base.BaseActivity
+import com.sonuan.xxxxsimples.ex.TAG
+import com.sonuan.xxxxsimples.ex.showToast
 
-class MPermissionActivity : BaseActivity(), View.OnClickListener {
+class NativePermissionActivity : BaseActivity(), View.OnClickListener {
 
     companion object {
         private val REQUESTCODE_CAMERA = 1000
@@ -17,8 +21,8 @@ class MPermissionActivity : BaseActivity(), View.OnClickListener {
     }
 
     override fun initViews() {
-        setContentView(R.layout.activity_mpermission)
-        findViewById(R.id.permission_camera).setOnClickListener(this)
+        setContentView(R.layout.nativepermission_activity)
+        findViewById(R.id.nativepermissions_camera_btn).setOnClickListener(this)
     }
 
     override fun initDatas(savedInstanceState: Bundle?) {
@@ -26,7 +30,7 @@ class MPermissionActivity : BaseActivity(), View.OnClickListener {
 
     override fun onClick(v: View?) {
         when (v?.id) {
-            R.id.permission_camera -> camera()
+            R.id.nativepermissions_camera_btn -> camera()
         }
     }
 

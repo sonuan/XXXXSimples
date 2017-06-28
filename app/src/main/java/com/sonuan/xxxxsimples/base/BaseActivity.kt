@@ -1,9 +1,8 @@
-package com.sonuan.xxxxsimples
+package com.sonuan.xxxxsimples.base
 
 import android.os.Bundle
-import android.support.v7.app.AppCompatActivity
 
-abstract class BaseActivity : AppCompatActivity() {
+abstract class BaseActivity : BasePermissionsActivity() {
 
     companion object {
         val TITLE = "activity_title"
