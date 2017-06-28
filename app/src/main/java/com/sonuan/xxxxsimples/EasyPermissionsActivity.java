@@ -17,7 +17,6 @@ public class EasyPermissionsActivity extends BaseActivity implements View.OnClic
 
     private static final int RC_CAMERA_PERM = 1001;
     private static final int RC_LOCATION_CONTACTS_PERM = 1002;
-    private MPermissionHelper mPermissionHelper;
 
     @Override
     protected void initViews() {
@@ -30,7 +29,6 @@ public class EasyPermissionsActivity extends BaseActivity implements View.OnClic
 
     @Override
     protected void initDatas(Bundle savedInstanceState) {
-        mPermissionHelper = new MPermissionHelper(this);
     }
 
     @AfterPermissionGranted(RC_CAMERA_PERM)
@@ -58,12 +56,11 @@ public class EasyPermissionsActivity extends BaseActivity implements View.OnClic
     }
 
     private void camera2() {
-        mPermissionHelper.permissions(Manifest.permission.CAMERA).request();
+        new MPermissionHelper.Builder(this).permissions(Manifest.permission.CAMERA).build().request();
     }
 
     private void multiPer() {
-        String[] perms = {Manifest.permission.CAMERA, Manifest.permission.ACCESS_FINE_LOCATION};
-        mPermissionHelper.permissions(perms).request();
+        new MPermissionHelper.Builder(this).permissions(Manifest.permission.CAMERA, Manifest.permission.ACCESS_FINE_LOCATION).build().request();
     }
 
     @Override

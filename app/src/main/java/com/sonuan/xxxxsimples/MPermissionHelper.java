@@ -5,7 +5,6 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 
 import pub.devrel.easypermissions.AppSettingsDialog;
@@ -19,34 +18,35 @@ import pub.devrel.easypermissions.EasyPermissions;
  */
 public class MPermissionHelper implements EasyPermissions.PermissionCallbacks {
     private static final String TAG = "MPermissionHelper";
-    private HashMap<Integer, OnPermissionListener> mListeners;
     public static int sRequestCode = 1000;
+    public static final String RATIONALE = "需要相应权限才能更好地正常使用";
+    public static final String RATIONALE_SETTINGS = "没有相应的权限，此应用程序可能无法正常工作。 打开应用设置页面以修改应用权限";
+
     private int mRequestCode;
     private boolean isDestroyed = false;
-
-    private Activity mActivity;
+    private EasyPermissionsActivity mActivity;
     private boolean mIsShowRationaleSettingsDialog = true;
-    private String mRationale = "需要相应权限才能更好地正常使用";
-    private String mRationaleSettings = "没有相应的权限，此应用程序可能无法正常工作。 打开应用设置页面以修改应用权限";
+    private String mRationale = RATIONALE;
+    private String mRationaleSettings = RATIONALE_SETTINGS;
     private String[] mPermissions;
     private OnPermissionListener mListener;
+    private Builder mBuilder;
 
     private MPermissionHelper(Builder builder) {
-        mActivity = builder.mActivity;
+        mBuilder = builder;
         mIsShowRationaleSettingsDialog = builder.mIsShowRationaleSettingsDialog;
         mRationale = builder.mRationale;
         mRationaleSettings = builder.mRationaleSettings;
         mPermissions = builder.mPermissions;
         mListener = builder.mListener;
-        mListeners = new HashMap<>();
         mRequestCode = sRequestCode;
-        sRequestCode += 1000;
+        sRequestCode += 1;
         if (sRequestCode >= Integer.MAX_VALUE) {
             sRequestCode = 1000;
         }
-        if (mActivity instanceof EasyPermissionsActivity) {
-            EasyPermissionsActivity activity = (EasyPermissionsActivity) mActivity;
-            activity.setPermissionsResultCallback(this);
+        if (builder.mActivity instanceof EasyPermissionsActivity) {
+            mActivity = (EasyPermissionsActivity) builder.mActivity;
+            mActivity.setPermissionsResultCallback(this);
         }
     }
 
@@ -57,9 +57,10 @@ public class MPermissionHelper implements EasyPermissions.PermissionCallbacks {
         void onDenied(List<String> perms);
     }
 
-    public MPermissionHelper(Activity activity) {
+    private MPermissionHelper(EasyPermissionsActivity activity) {
+        mBuilder = null;
         mActivity = activity;
-        mListeners = new HashMap<>();
+        mActivity.setPermissionsResultCallback(this);
         mRequestCode = sRequestCode;
         sRequestCode += 1000;
         if (sRequestCode >= Integer.MAX_VALUE) {
@@ -75,18 +76,7 @@ public class MPermissionHelper implements EasyPermissions.PermissionCallbacks {
         return this;
     }
 
-    public MPermissionHelper request(Builder builder) {
-        mActivity = builder.mActivity;
-        mIsShowRationaleSettingsDialog = builder.mIsShowRationaleSettingsDialog;
-        mRationale = builder.mRationale;
-        mRationaleSettings = builder.mRationaleSettings;
-        mPermissions = builder.mPermissions;
-        request();
-        return this;
-    }
-
     private void requestPermissions() {
-        mListeners.put(mRequestCode, mListener);
         if (EasyPermissions.hasPermissions(mActivity, mPermissions)) {
             if (mListener != null) {
                 mListener.onGranted(Arrays.asList(mPermissions));
@@ -104,11 +94,8 @@ public class MPermissionHelper implements EasyPermissions.PermissionCallbacks {
     public void onPermissionsGranted(int requestCode, List<String> perms) {
         Log.i(TAG, "onPermissionsGranted: requestCode:" + requestCode);
         if (!isDestroyed) {
-            if (mListeners != null) {
-                OnPermissionListener listener = mListeners.get(requestCode);
-                if (listener != null) {
-                    listener.onGranted(perms);
-                }
+            if (mListener != null) {
+                mListener.onGranted(perms);
             }
         }
     }
@@ -125,11 +112,8 @@ public class MPermissionHelper implements EasyPermissions.PermissionCallbacks {
                         .build()
                         .show();
             }
-            if (mListeners != null) {
-                OnPermissionListener listener = mListeners.get(requestCode);
-                if (listener != null) {
-                    listener.onDenied(perms);
-                }
+            if (mListener != null) {
+                mListener.onDenied(perms);
             }
         }
 
@@ -139,49 +123,59 @@ public class MPermissionHelper implements EasyPermissions.PermissionCallbacks {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
             @NonNull int[] grantResults) {
         EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this);
-    }
-
-    public void destroy() {
-        isDestroyed = true;
-        if (mListeners != null) {
-            mListeners.clear();
-            mListeners = null;
+        reset();
+        if (mActivity != null) {
+            mActivity.setPermissionsResultCallback(null);
         }
-        mActivity = null;
     }
 
-    public MPermissionHelper rationale(String rationale) {
+    public void reset() {
+        mIsShowRationaleSettingsDialog = true;
+        mListener = null;
+        mPermissions = null;
+        mRationale = RATIONALE;
+        mRationaleSettings = RATIONALE_SETTINGS;
+    }
+
+    private void destroy() {
+        isDestroyed = true;
+        if (mActivity != null) {
+            mActivity.setPermissionsResultCallback(null);
+        }
+    }
+
+    private MPermissionHelper rationale(String rationale) {
         mRationale = rationale;
         return this;
     }
 
-    public MPermissionHelper rationaleSettings(String rationaleSettings) {
+    private MPermissionHelper rationaleSettings(String rationaleSettings) {
         mRationaleSettings = rationaleSettings;
         return this;
     }
 
-    public MPermissionHelper permissions(String... permissions) {
+    private MPermissionHelper permissions(String... permissions) {
         mPermissions = permissions;
         return this;
     }
 
-    public MPermissionHelper listener(OnPermissionListener listener) {
+    private MPermissionHelper listener(OnPermissionListener listener) {
         mListener = listener;
         return this;
     }
 
-    public MPermissionHelper showRationaleSettingsDialog(boolean showRationaleSettingsDialog) {
+    private MPermissionHelper showRationaleSettingsDialog(boolean showRationaleSettingsDialog) {
         mIsShowRationaleSettingsDialog = showRationaleSettingsDialog;
         return this;
     }
 
     public static final class Builder {
-        private String mRationale;
-        private String mRationaleSettings;
+        private String mRationale = RATIONALE;
+        private String mRationaleSettings = RATIONALE_SETTINGS;
         private String[] mPermissions;
         private OnPermissionListener mListener;
         private Activity mActivity;
-        private boolean mIsShowRationaleSettingsDialog;
+        private boolean mIsShowRationaleSettingsDialog = true;
 
         public Builder(Activity activity) {
             mActivity = activity;
