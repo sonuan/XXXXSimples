@@ -3,8 +3,11 @@ package com.sonuan.xxxxsimples;
 import android.Manifest;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.view.View;
 import android.widget.Toast;
+
+import java.util.List;
 
 import pub.devrel.easypermissions.AfterPermissionGranted;
 import pub.devrel.easypermissions.EasyPermissions;
@@ -22,6 +25,7 @@ public class EasyPermissionsActivity extends BaseActivity implements View.OnClic
         findViewById(R.id.permission_camera).setOnClickListener(this);
         findViewById(R.id.permission_camera2).setOnClickListener(this);
         findViewById(R.id.multi_permission).setOnClickListener(this);
+        findViewById(R.id.multi_permission2).setOnClickListener(this);
     }
 
     @Override
@@ -54,12 +58,12 @@ public class EasyPermissionsActivity extends BaseActivity implements View.OnClic
     }
 
     private void camera2() {
-        mPermissionHelper.requestPermissions(Manifest.permission.CAMERA);
+        mPermissionHelper.permissions(Manifest.permission.CAMERA).request();
     }
 
     private void multiPer() {
         String[] perms = {Manifest.permission.CAMERA, Manifest.permission.ACCESS_FINE_LOCATION};
-        mPermissionHelper.requestPermissions(perms);
+        mPermissionHelper.permissions(perms).request();
     }
 
     @Override
@@ -67,7 +71,10 @@ public class EasyPermissionsActivity extends BaseActivity implements View.OnClic
             @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         // EasyPermissions handles the request result.
-        EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, mPermissionHelper);
+        //EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, mPermissionHelper);
+        if (mPermissionsResultCallback != null) {
+            mPermissionsResultCallback.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        }
     }
     //
     //
@@ -85,6 +92,14 @@ public class EasyPermissionsActivity extends BaseActivity implements View.OnClic
     //    }
     //}
 
+
+    ActivityCompat.OnRequestPermissionsResultCallback mPermissionsResultCallback;
+
+    public void setPermissionsResultCallback(
+            ActivityCompat.OnRequestPermissionsResultCallback permissionsResultCallback) {
+        mPermissionsResultCallback = permissionsResultCallback;
+    }
+
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
@@ -96,6 +111,22 @@ public class EasyPermissionsActivity extends BaseActivity implements View.OnClic
                 break;
             case R.id.multi_permission:
                 multiPer();
+                break;
+            case R.id.multi_permission2:
+                new MPermissionHelper.Builder(this).permissions(Manifest.permission.CAMERA,
+                        Manifest.permission.ACCESS_FINE_LOCATION).rationale("拒绝后，再次申请时提示语").rationaleSettings(
+                        "权限被禁，提示去设置").showRationaleSettingsDialog(true).listener(
+                        new MPermissionHelper.OnPermissionListener() {
+                            @Override
+                            public void onGranted(List<String> perms) {
+
+                            }
+
+                            @Override
+                            public void onDenied(List<String> perms) {
+
+                            }
+                        }).build().request();
                 break;
         }
     }
