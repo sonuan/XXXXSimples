@@ -2,8 +2,10 @@
 <manifest package="com.sonuan.xxxxsimples"
           xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <uses-permission android:name="android.permission.CAMERA"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.CAMERA"/>
+
+    <uses-feature android:name="android.hardware.Camera"/>
 
     <application
         android:allowBackup="true"
@@ -22,6 +24,8 @@
         <activity android:name=".activity.NativePermissionActivity">
         </activity>
         <activity android:name=".activity.EasyPermissionsActivity">
+        </activity>
+        <activity android:name=".activity.Camera1Activity">
         </activity>
     </application>
 

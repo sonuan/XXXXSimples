@@ -1,4 +1,4 @@
-package com.sonuan.xxxxsimples
+package com.sonuan.xxxxsimples.other
 
 /**
  * @author wusongyuan

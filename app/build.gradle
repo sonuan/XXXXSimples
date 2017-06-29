@@ -19,8 +19,8 @@ android {
         }
     }
 
-    productFlavors{
-        dev{
+    productFlavors {
+        dev {
             minSdkVersion 21
         }
     }

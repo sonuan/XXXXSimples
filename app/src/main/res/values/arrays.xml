@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="main_simples">
+        <item>6.0 Permission适配</item>
+        <item>EasyPermissions适配</item>
+        <item>Camera+SurfaceView</item>
+    </string-array>
+</resources>

@@ -1,5 +1,6 @@
 package com.sonuan.xxxxsimples
 
+import android.Manifest
 import android.os.Bundle
 import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.LinearLayoutManager
@@ -9,10 +10,13 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
+import com.sonuan.xxxxsimples.activity.Camera1Activity
 import com.sonuan.xxxxsimples.activity.EasyPermissionsActivity
 import com.sonuan.xxxxsimples.activity.NativePermissionActivity
 import com.sonuan.xxxxsimples.base.BaseActivity
 import com.sonuan.xxxxsimples.ex.toActivity
+import com.sonuan.xxxxsimples.helper.MPermissionHelper
+import com.sonuan.xxxxsimples.other.OnItemClickListener
 
 class MainActivity : BaseActivity(), OnItemClickListener {
 
@@ -42,6 +46,18 @@ class MainActivity : BaseActivity(), OnItemClickListener {
         when (position) {
             0 -> toActivity(this, NativePermissionActivity::class.java, title)
             1 -> toActivity(this, EasyPermissionsActivity::class.java, title)
+            2 -> {
+                MPermissionHelper.Builder(this).permissions(Manifest.permission.CAMERA).listener(object : MPermissionHelper.OnPermissionListener {
+                    override fun onGranted(perms: MutableList<String>?) {
+                        this@MainActivity.toActivity(this@MainActivity, Camera1Activity::class.java, title)
+                    }
+
+                    override fun onDenied(perms: MutableList<String>?) {
+                    }
+                }).build().request()
+            }
+
+
         }
     }
 

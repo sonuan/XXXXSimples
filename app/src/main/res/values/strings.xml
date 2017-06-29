@@ -3,9 +3,4 @@
     <string name="rationale_camera">This app needs access to your camera so you can take pictures.</string>
     <string name="rationale_location_contacts">This app needs access to your location and contacts to know where and who you are.</string>
     <string name="rationale">没有相应的权限，此应用程序可能无法正常工作。 打开应用设置页面以修改应用权限</string>
-
-    <string-array name="main_simples">
-        <item>6.0 Permission适配</item>
-        <item>EasyPermissions适配</item>
-    </string-array>
 </resources>
