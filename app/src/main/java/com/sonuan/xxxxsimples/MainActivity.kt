@@ -40,8 +40,8 @@ class MainActivity : BaseActivity(), OnItemClickListener {
         adapter.setData(list)
     }
 
-    override fun onItemClick(obj: Any, position: Int) {
-        val title = obj.toString()
+    override fun onItemClick(itemView: View, position: Int) {
+        val title = itemView.tag.toString()
         println(title)
         when (position) {
             0 -> toActivity(this, NativePermissionActivity::class.java, title)
@@ -88,7 +88,7 @@ class MainActivity : BaseActivity(), OnItemClickListener {
 
             init {
                 if (listener != null) {
-                    itemView?.setOnClickListener { listener.onItemClick(itemView?.tag, adapterPosition) }
+                    itemView?.setOnClickListener { listener.onItemClick(itemView, adapterPosition) }
                 }
             }
 

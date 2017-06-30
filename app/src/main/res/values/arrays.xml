@@ -5,4 +5,8 @@
         <item>EasyPermissions适配</item>
         <item>Camera+SurfaceView</item>
     </string-array>
+
+    <string-array name="camera_settings">
+        <item>Rotation</item>
+    </string-array>
 </resources>
