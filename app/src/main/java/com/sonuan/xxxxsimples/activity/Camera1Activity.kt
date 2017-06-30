@@ -1,20 +1,21 @@
 package com.sonuan.xxxxsimples.activity
 
-import android.content.Context
 import android.hardware.Camera
 import android.os.Bundle
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.util.Log
+import android.view.Surface
 import android.view.SurfaceHolder
 import android.view.SurfaceView
-import android.view.WindowManager
+import android.view.View
 import com.sonuan.xxxxsimples.R
 import com.sonuan.xxxxsimples.adpter.CameraSettingsAdapter
 import com.sonuan.xxxxsimples.base.BaseActivity
+import com.sonuan.xxxxsimples.other.OnItemClickListener
 
-class Camera1Activity : BaseActivity(), SurfaceHolder.Callback {
 
+class Camera1Activity : BaseActivity(), SurfaceHolder.Callback, OnItemClickListener {
     companion object {
         val TAG = "Camera1Activity"
     }
@@ -22,6 +23,8 @@ class Camera1Activity : BaseActivity(), SurfaceHolder.Callback {
     lateinit var mSurfaceView: SurfaceView
     lateinit var mRecyclerView: RecyclerView
     var mCamera: Camera? = null
+    lateinit var sSettings:Array<String>
+    var mDisplayRotation:Int = 0
     override fun initViews() {
         setContentView(R.layout.activity_camera1)
         mSurfaceView = findViewById(R.id.surfaceView) as SurfaceView
@@ -32,23 +35,53 @@ class Camera1Activity : BaseActivity(), SurfaceHolder.Callback {
         mRecyclerView.layoutManager = LinearLayoutManager(this)
 
     }
+    var currentCameraId = 0
+    private var faceBackCameraId: Int = 0
+
+    private var faceBackCameraOrientation: Int = 0
+
+    private var faceFrontCameraId: Int = 0
+
+    private var faceFrontCameraOrientation: Int = 0
 
     override fun initDatas(savedInstanceState: Bundle?) {
+        initSettings()
+
+        initCamera()
+    }
+
+    private fun initSettings() {
+        var adapter = CameraSettingsAdapter()
+        adapter.onItemListener = this
+        mRecyclerView.adapter = adapter
+        sSettings = resources.getStringArray(R.array.camera_settings)
+        adapter.datas = sSettings
+    }
+
+    private fun initCamera() {
+        val numberOfCameras = Camera.getNumberOfCameras()
+        Log.i(TAG, "initCamera: " + numberOfCameras)
+        for (i in 0..numberOfCameras - 1) {
+            val cameraInfo = Camera.CameraInfo()
+            Camera.getCameraInfo(i, cameraInfo)
+            if (cameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_BACK) {
+                faceBackCameraId = i
+                faceBackCameraOrientation = cameraInfo.orientation
+            } else if (cameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
+                faceFrontCameraId = i
+                faceFrontCameraOrientation = cameraInfo.orientation
+            }
+        }
+        currentCameraId = faceFrontCameraId;
         mCamera = getCameraInstance()
         var parameter = mCamera?.parameters
-
-        var adapter = CameraSettingsAdapter()
-        mRecyclerView.adapter = adapter
-
-        val settings = resources.getStringArray(R.array.camera_settings)
-        adapter.datas = settings
     }
 
     /** A safe way to get an instance of the Camera object.  */
     fun getCameraInstance(): Camera? {
         var c: Camera? = null
         try {
-            c = Camera.open(Camera.CameraInfo.CAMERA_FACING_FRONT) // attempt to get a Camera instance
+            c = Camera.open(currentCameraId) // attempt to get a Camera instance
         } catch (e: Exception) {
             e.printStackTrace()
             // Camera is not available (in use or does not exist)
@@ -57,27 +90,15 @@ class Camera1Activity : BaseActivity(), SurfaceHolder.Callback {
     }
 
     override fun surfaceChanged(holder: SurfaceHolder?, format: Int, width: Int, height: Int) {
-        // If your preview can change or rotate, take care of those events here.
-        // Make sure to stop the preview before resizing or reformatting it.
-
         if (holder?.getSurface() == null) {
-            // preview surface does not exist
             return
         }
-
-        // stop preview before making changes
         try {
             mCamera?.stopPreview()
         } catch (e: Exception) {
             e.printStackTrace()
             // ignore: tried to stop a non-existent preview
         }
-
-
-        // set preview size and make any resize, rotate or
-        // reformatting changes here
-
-        // start preview with new settings
         startPreview(holder)
     }
 
@@ -91,12 +112,27 @@ class Camera1Activity : BaseActivity(), SurfaceHolder.Callback {
     private fun startPreview(holder: SurfaceHolder?) {
         try {
             val cameraInfo = Camera.CameraInfo()
-            Camera.getCameraInfo(0, cameraInfo)
+            Camera.getCameraInfo(currentCameraId, cameraInfo)
             val cameraRotationOffset = cameraInfo.orientation
-            Log.i(TAG, "cameraRotationOffset:" + cameraRotationOffset)
-            val rotation = (getSystemService(Context.WINDOW_SERVICE) as WindowManager).defaultDisplay.rotation
-            Log.i(TAG, "rotation:" + rotation)
-            mCamera?.setDisplayOrientation(90)
+            val rotation = windowManager.defaultDisplay.rotation
+            var degrees = 0
+            when (rotation) {
+                Surface.ROTATION_0 -> degrees = 0
+                Surface.ROTATION_90 -> degrees = 90
+                Surface.ROTATION_180 -> degrees = 180
+                Surface.ROTATION_270 -> degrees = 270
+            }
+            Log.i(TAG, "startPreview: cameraRotationOffset:" + cameraRotationOffset + " rotation:" + rotation + " degrees:" + degrees)
+            if (cameraInfo.facing === Camera.CameraInfo.CAMERA_FACING_FRONT) {
+                mDisplayRotation = (cameraRotationOffset + degrees) % 360
+                Log.i(TAG, "front-facing mDisplayRotation:" + mDisplayRotation)
+                mDisplayRotation = (360 - mDisplayRotation) % 360  // compensate the mirror
+                Log.i(TAG, "front-facing mDisplayRotation:" + mDisplayRotation)
+            } else {  // back-facing
+                mDisplayRotation = (cameraRotationOffset- degrees + 360) % 360
+                Log.i(TAG, "back-facing mDisplayRotation:" + mDisplayRotation)
+            }
+            mCamera?.setDisplayOrientation(mDisplayRotation)
             mCamera?.setPreviewDisplay(holder)
             mCamera?.startPreview()
 
@@ -108,6 +144,14 @@ class Camera1Activity : BaseActivity(), SurfaceHolder.Callback {
     override fun onDestroy() {
         super.onDestroy()
         mCamera?.release()
+    }
+
+    override fun onItemClick(itemView: View, position: Int) {
+        when (position) {
+            0 -> {
+                mDisplayRotation += 90
+                mCamera?.setDisplayOrientation(mDisplayRotation % 360) }
+        }
     }
 
 }
