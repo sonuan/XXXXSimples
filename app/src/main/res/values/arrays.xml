@@ -4,6 +4,7 @@
         <item>6.0 Permission适配</item>
         <item>EasyPermissions适配</item>
         <item>Camera+SurfaceView</item>
+        <item>GLSurfaceView</item>
     </string-array>
 
     <string-array name="camera_settings">

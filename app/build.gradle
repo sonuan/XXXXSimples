@@ -43,7 +43,7 @@ repositories {
     mavenCentral()
 }
 
-freeline{
+freeline {
     hack true
     productFlavor 'dev'
 }

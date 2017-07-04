@@ -17,8 +17,8 @@ import pub.devrel.easypermissions.EasyPermissions;
 public class EasyPermissionsActivity extends BaseActivity implements View.OnClickListener {
 
 
-    private static final int RC_CAMERA_PERM = 1001;
-    private static final int RC_LOCATION_CONTACTS_PERM = 1002;
+    private static final int RC_CAMERA_PERM = 100001;
+    private static final int RC_LOCATION_CONTACTS_PERM = 100002;
 
     @Override
     protected void initViews() {
@@ -85,12 +85,14 @@ public class EasyPermissionsActivity extends BaseActivity implements View.OnClic
                         new MPermissionHelper.OnPermissionListener() {
                             @Override
                             public void onGranted(List<String> perms) {
-
+                                Toast.makeText(EasyPermissionsActivity.this, "granted:" + perms.toString(), Toast.LENGTH_SHORT)
+                                        .show();
                             }
 
                             @Override
                             public void onDenied(List<String> perms) {
-
+                                Toast.makeText(EasyPermissionsActivity.this, "denied:" + perms.toString(), Toast.LENGTH_SHORT)
+                                        .show();
                             }
                         }).build().request();
                 break;
