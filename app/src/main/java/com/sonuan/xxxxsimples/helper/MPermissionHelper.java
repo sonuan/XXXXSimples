@@ -2,11 +2,15 @@ package com.sonuan.xxxxsimples.helper;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -37,6 +41,8 @@ public class MPermissionHelper implements EasyPermissions.PermissionCallbacks {
     private Context mContext;
     private OnPermissionsResultListener mActivityResult;
     private OnPermissionsResultListener mFragmentResult;
+    private List<String> mGranteds = new ArrayList<>();
+    private List<String> mDenieds = new ArrayList<>();
 
     private MPermissionHelper(Builder builder) {
         mIsShowRationaleSettingsDialog = builder.mIsShowRationaleSettingsDialog;
@@ -102,27 +108,45 @@ public class MPermissionHelper implements EasyPermissions.PermissionCallbacks {
     }
 
     private void requestPermissions() {
-        if (EasyPermissions.hasPermissions(mContext, mPermissions)) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            mGranteds = Arrays.asList(mPermissions);
             if (mListener != null) {
-                mListener.onGranted(Arrays.asList(mPermissions));
+                mListener.onGranted(mGranteds);
             }
-            Log.i(TAG, "requestPermissions: all granted.");
+            Log.i(TAG, "sdk < M requestPermissions: all granted.");
         } else {
-            // 请求权限，一个或多个
-            if (mActivity != null) {
-                EasyPermissions.requestPermissions(mActivity, mRationale, mRequestCode, mPermissions);
-            } else if (mFragment != null) {
-                EasyPermissions.requestPermissions(mFragment, mRationale, mRequestCode, mPermissions);
+            mGranteds.clear();
+            mDenieds.clear();
+            for (String perm : mPermissions) {
+                if (ContextCompat.checkSelfPermission(mContext, perm) == PackageManager.PERMISSION_GRANTED) {
+                    mGranteds.add(perm);
+                } else {
+                    mDenieds.add(perm);
+                }
             }
-            Log.i(TAG, "requestPermissions: requestCode:" + mRequestCode);
-            mRequestCode++;
+            if (mDenieds.size() == 0 && mGranteds.size() > 0) {
+                if (mListener != null) {
+                    mListener.onGranted(mGranteds);
+                }
+            } else {
+                // 请求权限，一个或多个
+                if (mActivity != null) {
+                    EasyPermissions.requestPermissions(mActivity, mRationale, mRequestCode, (String[])mDenieds.toArray(new String[mDenieds.size()]));
+                } else if (mFragment != null) {
+                    EasyPermissions.requestPermissions(mFragment, mRationale, mRequestCode, (String[])mDenieds.toArray(new String[mDenieds.size()]));
+                }
+                Log.i(TAG, "requestPermissions: requestCode:" + mRequestCode);
+            }
         }
     }
 
     @Override
     public void onPermissionsGranted(int requestCode, List<String> perms) {
-        Log.i(TAG, "onPermissionsGranted: requestCode:" + requestCode);
-        if (!isDestroyed) {
+        if (mGranteds.size() != 0) {
+            perms.addAll(0, mGranteds);
+        }
+        Log.i(TAG, "onPermissionsDenied: requestCode:" + requestCode + " perms:" + perms);
+        if (!isDestroyed && mRequestCode == requestCode) {
             if (mListener != null) {
                 mListener.onGranted(perms);
             }
@@ -132,7 +156,7 @@ public class MPermissionHelper implements EasyPermissions.PermissionCallbacks {
     @Override
     public void onPermissionsDenied(int requestCode, List<String> perms) {
         Log.i(TAG, "onPermissionsDenied: requestCode:" + requestCode);
-        if (!isDestroyed) {
+        if (!isDestroyed && mRequestCode == requestCode) {
             if (isSomePermissionPermanentlyDenied(perms) && mIsShowRationaleSettingsDialog) {
                 if (mActivity != null) {
                     showSettingsDialogByActivity();
