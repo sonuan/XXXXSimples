@@ -5,6 +5,9 @@
         <item>EasyPermissions适配</item>
         <item>Camera+SurfaceView</item>
         <item>GLSurfaceView</item>
+        <item>Overdraw分析</item>
+        <item>RecyclerView奇葩刷新问题</item>
+        <item>LayoutManager</item>
     </string-array>
 
     <string-array name="camera_settings">

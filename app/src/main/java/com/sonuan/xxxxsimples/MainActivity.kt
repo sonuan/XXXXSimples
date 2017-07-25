@@ -10,9 +10,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
-import com.sonuan.xxxxsimples.activity.Camera1Activity
-import com.sonuan.xxxxsimples.activity.EasyPermissionsActivity
-import com.sonuan.xxxxsimples.activity.NativePermissionActivity
+import com.sonuan.xxxxsimples.activity.*
 import com.sonuan.xxxxsimples.base.BaseActivity
 import com.sonuan.xxxxsimples.ex.toActivity
 import com.sonuan.xxxxsimples.helper.MPermissionHelper
@@ -22,11 +20,13 @@ class MainActivity : BaseActivity(), OnItemClickListener {
 
     lateinit var recyclerView: RecyclerView
     lateinit var adapter: MainRecyclerAdapter
+    lateinit var list: MutableList<String>
 
     override fun initViews() {
         setContentView(R.layout.activity_main)
         recyclerView = findViewById(R.id.main_recyclerview) as RecyclerView
-        recyclerView.layoutManager = LinearLayoutManager(this)
+        val linearLayoutManager = LinearLayoutManager(this)
+        recyclerView.layoutManager = linearLayoutManager
         var itemDecoration = DividerItemDecoration(this, LinearLayout.VERTICAL)
         itemDecoration.setDrawable(resources.getDrawable(R.drawable.divider_line))
         recyclerView.addItemDecoration(itemDecoration)
@@ -36,7 +36,7 @@ class MainActivity : BaseActivity(), OnItemClickListener {
         adapter = MainRecyclerAdapter(this)
         recyclerView.adapter = adapter
 
-        val list: List<String>? = resources.getStringArray(R.array.main_simples).asList()
+        list = resources.getStringArray(R.array.main_simples).asList().toMutableList()
         adapter.setData(list)
     }
 
@@ -44,10 +44,12 @@ class MainActivity : BaseActivity(), OnItemClickListener {
         val title = itemView.tag.toString()
         println(title)
         when (position) {
-            0 -> toActivity(this, NativePermissionActivity::class.java, title)
+            0 -> {
+                toActivity(this, NativePermissionActivity::class.java, title)
+            }
             1 -> toActivity(this, EasyPermissionsActivity::class.java, title)
             2 -> {
-                MPermissionHelper.Builder(this).permissions(Manifest.permission.CAMERA).listener(object : MPermissionHelper.OnPermissionListener {
+                MPermissionHelper.Builder(this).permissions(Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO).listener(object : MPermissionHelper.OnPermissionListener {
                     override fun onGranted(perms: MutableList<String>?) {
                         this@MainActivity.toActivity(this@MainActivity, Camera1Activity::class.java, title)
                     }
@@ -56,7 +58,10 @@ class MainActivity : BaseActivity(), OnItemClickListener {
                     }
                 }).build().request()
             }
-
+            3 -> toActivity(this, GLSurfaceViewActivity::class.java, title)
+            4 -> toActivity(this, OverdrawActivity::class.java, title)
+            5 -> toActivity(this, RecyclerViewRefreshActivity::class.java, title)
+            6 -> toActivity(this, LayoutManagerActivity::class.java, title)
 
         }
     }
@@ -65,7 +70,7 @@ class MainActivity : BaseActivity(), OnItemClickListener {
 
         var datas: List<String>? = null
 
-        open fun setData(datas: List<String>?) {
+        open fun setData(datas: MutableList<String>?) {
             this.datas = datas
             notifyDataSetChanged()
         }
