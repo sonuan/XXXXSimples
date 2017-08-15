@@ -19,6 +19,36 @@
         app:layout_constraintRight_toRightOf="parent"
         android:layout_marginTop="8dp"
         app:layout_constraintTop_toTopOf="parent"
+        android:backgroundTint="@drawable/btn_clicked"
+        android:backgroundTintMode="src_over"
+        />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:backgroundTint="@drawable/btn_clicked"
+        android:backgroundTintMode="src_atop"
+        android:onClick="test"
+        android:contentDescription="测试点击背景变化"
+        android:background="@mipmap/live_rank_football_penaltykick_start_ic"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@+id/nativepermissions_camera_btn"
+        android:layout_marginRight="8dp"
+        app:layout_constraintRight_toRightOf="parent"
+        android:layout_marginLeft="8dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:id="@+id/button2"
+        />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="测试Settings类无权限时异常问题"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:layout_marginTop="10dp"
+        app:layout_constraintTop_toBottomOf="@+id/button2"
+        android:onClick="testSettingsPermission"
         />
 
 

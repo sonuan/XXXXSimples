@@ -17,14 +17,20 @@ class RecyclerViewRefreshActivity : BaseActivity(), OnItemClickListener {
 
     override fun initViews() {
         setContentView(R.layout.activity_recycler_view_refresh)
-        var recyclerView = findViewById(R.id.refresh_recyclerview) as RecyclerView
+        recyclerView = findViewById(R.id.refresh_recyclerview) as RecyclerView
         val linearLayoutManager = LinearLayoutManager(this)
         recyclerView.layoutManager = linearLayoutManager
         var itemDecoration = DividerItemDecoration(this, LinearLayout.VERTICAL)
         itemDecoration.setDrawable(resources.getDrawable(R.drawable.divider_line))
         recyclerView.addItemDecoration(itemDecoration)
 
-        findViewById(R.id.refresh_add_btn).setOnClickListener { list.add("你好") }
+        findViewById(R.id.refresh_add_btn).setOnClickListener {
+            list.add("你好")
+            if (recyclerView.adapter.itemCount < 20) {
+                // 奇葩问题：scrollToPosition会自动刷新数据？？
+                recyclerView.scrollToPosition(recyclerView.adapter.itemCount - 1)
+            }
+        }
     }
     override fun initDatas(savedInstanceState: Bundle?) {
         var adapter = MainActivity.MainRecyclerAdapter(this)

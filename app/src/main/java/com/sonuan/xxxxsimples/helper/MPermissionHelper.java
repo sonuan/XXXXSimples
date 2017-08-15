@@ -11,10 +11,14 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.sonuan.xxxxsimples.R;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -121,24 +125,21 @@ public class MPermissionHelper implements EasyPermissions.PermissionCallbacks {
                     mListener.onGranted(mGranteds);
                 }
             } else if (mDenieds.size() > 0) {
-                switch (Build.MANUFACTURER) {
-                    case "Xiaomi":
-                        boolean isGrantedByXiaomiSecurityCenter = true;
-                        for (String perm : mDenieds) {
-                            if (!XiaomiPermissionUtil.checkPermissionBySecurityCenter(mContext, perm)) {
-                                isGrantedByXiaomiSecurityCenter = false;
-                                break;
-                            }
+                if (XiaomiPermissionUtil.isMiuiOS()) {
+                    boolean isGrantedByXiaomiSecurityCenter = true;
+                    for (String perm : mDenieds) {
+                        if (!XiaomiPermissionUtil.checkPermissionBySecurityCenter(mContext, perm)) {
+                            isGrantedByXiaomiSecurityCenter = false;
+                            break;
                         }
-                        if (!isGrantedByXiaomiSecurityCenter) {
-                            requestPermissionsByXiaomi();
-                        } else {
-                            requestPermissionsByEasy();
-                        }
-                        break;
-                    default:
+                    }
+                    if (!isGrantedByXiaomiSecurityCenter) {
+                        requestPermissionsByXiaomi();
+                    } else {
                         requestPermissionsByEasy();
-                        break;
+                    }
+                } else {
+                    requestPermissionsByEasy();
                 }
             }
         }
@@ -167,13 +168,10 @@ public class MPermissionHelper implements EasyPermissions.PermissionCallbacks {
 
     private boolean checkPermission(Context context, String perm) {
         boolean isGranted = false;
-        switch (Build.MANUFACTURER) {
-            case "Xiaomi":
-                isGranted = XiaomiPermissionUtil.checkPermissionInXiaomi(context, perm);
-                break;
-            default:
-                isGranted = ContextCompat.checkSelfPermission(context, perm) == PackageManager.PERMISSION_GRANTED;
-                break;
+        if (XiaomiPermissionUtil.isMiuiOS()) {
+            isGranted = XiaomiPermissionUtil.checkPermissionInXiaomi(context, perm);
+        }else{
+            isGranted = ContextCompat.checkSelfPermission(context, perm) == PackageManager.PERMISSION_GRANTED;
         }
         Log.i(TAG, "checkPermission: " + perm + " " + isGranted);
         return isGranted;
@@ -340,6 +338,47 @@ public class MPermissionHelper implements EasyPermissions.PermissionCallbacks {
             int checkOp = appOpsManager.checkOp(AppOpsManager.permissionToOp(perm), Process.myUid(),
                     context.getPackageName());
             return checkOp == AppOpsManager.MODE_ALLOWED;
+        }
+
+        public static void init() {
+            isMiuiOS = !TextUtils.isEmpty(getSystemProperty(PROPERTY_MIUI_NAME));
+            if (!isMiuiOS) {
+                isMiuiOS = !TextUtils.isEmpty(getSystemProperty(PROPERTY_MIUI_CODE));
+            }
+            Log.i(TAG, "init: isMiuiOS:" + isMiuiOS);
+        }
+
+        public static boolean isMiuiOS;
+
+        public static boolean isMiuiOS() {
+            return isMiuiOS;
+        }
+
+        public static final String PROPERTY_MIUI_NAME = "ro.miui.ui.version.name";
+        public static final String PROPERTY_MIUI_CODE = "ro.miui.ui.version.code";
+        public static String getSystemProperty(String propName) {
+            String line;
+            BufferedReader input = null;
+            try {
+                java.lang.Process p = Runtime.getRuntime()
+                        .exec("getprop " + propName);
+                input = new BufferedReader(new InputStreamReader(p.getInputStream()), 1024);
+                line = input.readLine();
+                input.close();
+                p.destroy();
+            } catch (IOException ex) {
+                Log.e(TAG, "Unable to read sysprop " + propName, ex);
+                return null;
+            } finally {
+                if (input != null) {
+                    try {
+                        input.close();
+                    } catch (IOException e) {
+                        Log.e(TAG, "Exception while closing InputStream", e);
+                    }
+                }
+            }
+            return line;
         }
     }
 }
